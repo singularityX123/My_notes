@@ -60,5 +60,8 @@
     "random": "c",
     "stdio.h": "c",
     "numbers": "c"
-  }
+  },
+  "extensions.supportVirtualWorkspaces": {
+    "formulahendry.code-runner": true
+}
 }
