@@ -63,5 +63,5 @@
   },
   "extensions.supportVirtualWorkspaces": {
     "formulahendry.code-runner": true
-}
+  }
 }
