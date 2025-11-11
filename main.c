@@ -1,17 +1,9 @@
 ﻿#include <stdio.h>
 
-void func(int **p) {
-    int x = 100;
-    *p = &x;
-}
-
+struct Node { int data; struct Node* next; };
 int main() {
-    char str1[] = "Hello";
-    char str2[] = "Hello";
-    if (str1 == str2) {
-        printf("Equal\n");
-    } else {
-        printf("Not Equal\n");
-    }
+    struct Node a = {10}, b = {20};
+    a.next = &b;
+    printf("%d\n", a.next->data);
     return 0;
 }
