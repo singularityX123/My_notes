@@ -141,10 +141,11 @@ int list_delete(sqlink L, int pos){
         return -1;
     }
 
-    //Move 2 delete
+    //Move2delete
     for (int i = pos; i < L->last; i++){
         L->data[i] = L->data[i+1];
     }
+    
     L->last--;
 
     return 0;
@@ -165,11 +166,61 @@ int list_purge(sqlink L){
     return 0;
 }
 
+int list_reverse(sqlink L){
+    if (L == NULL){
+        printf("L is NULL\n");
+        return -1;
+    }
+
+    if (L->last == -1){
+        printf("list is empty\n");
+        return -1;
+    }
+
+    //Reverse
+    for (int i = 0; i <= L->last / 2; i++){
+        data_t temp = L->data[i];
+        L->data[i] = L->data[L->last - i];
+        L->data[L->last - i] = temp;
+    }
+
+    return 0;
+}
+
+// TODO:根据业务需求任意合并顺序表
 int list_merge(sqlink L1, sqlink L2){
     if (L1 == NULL || L2 == NULL){
         printf("L1 or L2 is NULL\n");
         return -1;
     }
 
-    
+    for (int i = 0; i <= L2->last; i++){
+        list_insert(L1, L2->data[i], L1->last + 1);
+    }
+
+    return 0;
+}
+
+int list_clean_repeat(sqlink L){
+    if (L == NULL){
+        printf("L is NULL\n");
+        return -1;
+    }
+
+    if ((L->last == -1) || (L->last == 0)){
+        printf("There is no need to clean\n");
+        return -1;
+    }
+
+    //Clean
+    for (int i = 0; i <= L->last; i++){
+        for (int j = i + 1; j <= L->last; j++){
+            if (L->data[i] == L->data[j]){
+                list_delete(L, j);
+                j--; // 删除后的后续索引调整
+            }
+        }
+    }
+
+    return 0;
 }
