@@ -59,7 +59,8 @@
   "files.associations": {
     "random": "c",
     "stdio.h": "c",
-    "numbers": "c"
+    "numbers": "c",
+    "unistd.h": "c"
   },
   "extensions.supportVirtualWorkspaces": {
     "formulahendry.code-runner": true
