@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
         return -1;
     }
 
-    if (chmod(argv[1], 0200) < 0) // chmod改变文件权限  或者文件描述符 fchmod(fd, 0200)
+    if (chmod(argv[1], 0666) < 0) // chmod改变文件权限  或者文件描述符 fchmod(fd, 0200)
     {
         printf("chmod error\n");
         return -1;
