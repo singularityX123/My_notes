@@ -9,4 +9,5 @@ typedef struct Node {
 } listnode, *linklist;
 
 linklist list_create();
+
 int list_tail_insert(linklist H, data_t val);
