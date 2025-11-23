@@ -5,8 +5,7 @@
 
 sqlink list_create(){
     //malloc
-    sqlink L;
-    L = (sqlink)malloc(sizeof(sqlist));
+    sqlink L = (sqlink)malloc(sizeof(sqlist));
 
     //先判断是否为空
     if (L == NULL){
@@ -17,7 +16,7 @@ sqlink list_create(){
     //initialize
     memset(L,0,sizeof(sqlist));
     L->last = -1; //数组从0开始，所以-1表示空表
-    //return
+    
     return L;
 };
 
