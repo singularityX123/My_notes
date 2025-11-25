@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
         printf("a"); 
         sleep(5);
 
-        setbuf(stdout, NULL); //将标准输出设置为无缓冲
-        printf("b"); //无缓冲，立即输出
+        setbuf(stdout, NULL); //将标准输出设置为无缓冲，a立即输出
+        printf("b"); //无缓冲，b又立即输出
         sleep(5);
 
 #endif
