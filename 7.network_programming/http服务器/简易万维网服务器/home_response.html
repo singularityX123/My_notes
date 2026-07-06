@@ -1,0 +1,31 @@
+﻿<!-- 替换为实际网页内容 -->
+ 
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>简易网站返回</title>
+<style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f7f9fc;color:#222;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
+    .card{background:#fff;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:24px;max-width:640px;width:90%}
+    h1{margin:0 0 8px;font-size:1.25rem}
+    p{margin:6px 0;color:#555}
+    .meta{margin-top:12px;font-size:.9rem;color:#666}
+    .kbd{background:#eef;font-family:monospace;padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+    <div class="card">
+        <h1>欢迎访问简易 HTTP 服务器</h1>
+        <p>这是一个用于测试的简单响应页面。</p>
+        <p class="meta">当前服务器时间：<span id="time">--:--:--</span></p>
+        <p class="meta">您的浏览器：<span id="ua">加载中…</span></p>
+    </div>
+<script>
+    document.getElementById('time').textContent = new Date().toLocaleString();
+    document.getElementById('ua').textContent = navigator.userAgent;
+    document.getElementById('path').textContent = location.pathname + location.search + location.hash;
+</script>
+</body>
+</html>

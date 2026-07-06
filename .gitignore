@@ -1,0 +1,127 @@
+﻿# ============================
+# Python
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+venv/
+.venv/
+env/
+
+# ============================
+# C/C++ 编译产物
+# ============================
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so.*
+*.dll
+*.class
+*.app
+*.debug
+*.release
+bin/
+obj/
+
+# ============================
+# Editor / IDE
+# ============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.autosave
+*.user
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sdf
+*.opensdf
+*.vcxproj
+cmake-build-*/
+
+# ============================
+# Jupyter Notebook checkpoints
+# ============================
+.ipynb_checkpoints/
+
+# ============================
+# Build directories
+# ============================
+build/
+/build*/
+.moc/
+.obj/
+.pch/
+.rcc/
+.uic/
+Makefile
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# ============================
+# Qt Creator
+# ============================
+*.pro.user*
+*.qbs.user*
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+.qmake.cache
+.qmake.stash
+
+*.core
+*.orig
+*.rej
+*.qm
+.#*
+*.*#
+core
+!core/
+tags
+.directory
+*.prl
+*.res
+*.rc
+CMakeLists.txt.user*
+*.flc
+*.ib_pdb_index
+*.idb
+*.ilk
+*.pdb
+*vcproj.*.*.user
+*.ncb
+*vcproj.*
+*.Debug
+*.Release
+
+# ============================
+# OS files
+# ============================
+.DS_Store
+Thumbs.db
+*.swp
+.*.swp
+
+# ============================
+# Data / 大文件目录
+# ============================
+/data/
+**/data/
+13.OpenCV/13.OpenCV_课程源码
+14.linux音视频开发/
+17.BSP/系统移植\[FSMP1A]/D*
+17.BSP/嵌入式linux内核及驱动开发
+*.pdf
