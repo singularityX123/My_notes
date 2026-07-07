@@ -2,9 +2,13 @@
 
 ## 一、启动流程概览
 
+### 核心链路
+
 ```
 BootROM → TF-A (FSBL) → U-Boot (SSBL) → Linux Kernel → RootFS
 ```
+
+### 各阶段说明
 
 | 阶段                    | 加载者   | 说明                                       |
 | ----------------------- | -------- | ------------------------------------------ |
@@ -14,7 +18,7 @@ BootROM → TF-A (FSBL) → U-Boot (SSBL) → Linux Kernel → RootFS
 | **Linux Kernel**  | U-Boot   | 解压运行                                   |
 | **RootFS**        | Kernel   | 挂载根文件系统                             |
 
----
+### 时序图
 
 ```mermaid
 sequenceDiagram
@@ -28,7 +32,6 @@ sequenceDiagram
     BootROM->>BootROM: 上电自检
     BootROM->>SD: 读取 sda1
     BootROM->>TF: 跳转到 TF-A
-    TF->>TF: 初始化 DDR、时钟
     TF->>SD: 读取 sda2
     TF->>Uboot: 跳转到 U-Boot
     Uboot->>Uboot: 引导菜单
@@ -40,8 +43,75 @@ sequenceDiagram
 
 ![alt text](<D2 移植过程分析/讲义/images/1717029814194-b7797305-6eaa-4e14-a1e4-49971d4c85ea.png>)
 
+---
 
-典型嵌入式设备 eMMC/SD  卡分区布局启动分区布局（以常见 ARM 平台为例）：
+## 二、各阶段职责详解
+
+### 完整流水线
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ① 拨码开关 ── 硬件引脚电平，决定 BootROM 从哪个介质读 TF-A            │
+│     ↓                                                                  │
+│  ② BootROM ── 芯片内部固件，无串口输出，几毫秒完成                      │
+│     ↓                                                                  │
+│  ③ TF-A (FSBL) ── 初始化 DDR、时钟，从同一介质加载 U-Boot              │
+│     ↓                                                                  │
+│  ④ U-Boot (SSBL) ── 引导加载程序，提供三种工作模式                     │
+│     ├─ 自动模式 → 从"自己所在介质"读 sda3 分区的 FIT 镜像              │
+│     ├─ ums 命令 → 把介质映射成 U 盘，给 PC 烧录用                     │
+│     └─ 手动模式 → 自己敲命令指定从哪个设备加载                         │
+│     ↓                                                                  │
+│  ⑤ Linux 内核 ── 解压运行                                              │
+│     ↓                                                                  │
+│  ⑥ 挂载 RootFS ── 挂载 sda4 分区                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 拨码开关的角色
+
+| 拨码状态  | BootROM 动作                      | 后续接力                      |
+| --------- | --------------------------------- | ----------------------------- |
+| SD 卡模式 | 从`mmc 0`（SD 卡）sda1 读 TF-A  | TF-A → SD 卡读 U-Boot → ... |
+| eMMC 模式 | 从`mmc 1`（eMMC）第1分区读 TF-A | TF-A → eMMC 读 U-Boot → ... |
+
+> **关键理解**：拨码盘**只决定 BootROM 去哪找 TF-A**，之后的 TF-A → U-Boot → 内核默认在同一介质上接力完成。但 U-Boot 启动后可以手动干预。
+
+### U-Boot 的三种模式
+
+| 模式     | 触发方式                   | 用途                                       |
+| -------- | -------------------------- | ------------------------------------------ |
+| 自动引导 | 上电后倒计时结束自动执行   | 从预定分区读取内核+dtb，正常启动 Linux     |
+| UMS 模式 | 在 U-Boot 命令行输入       | 把存储介质映射为 U 盘，供 PC 端 dd 烧录    |
+| 手动模式 | 倒计时内按任意键进入命令行 | 手动敲命令指定内核/dtb 来源，用于调试/开发 |
+
+> `ums` 只是烧录辅助工具，**跟系统引导没有关系**。
+
+### 跨介质加载：从 eMMC 启动 U-Boot，从 SD 卡加载内核
+
+场景：拨码盘拨到 eMMC 模式，但内核和 dtb 放在 SD 卡上。U-Boot 启动后手动操作：
+
+```bash
+# 1. 切换到 SD 卡（mmc 0）
+STM32MP> mmc dev 0
+
+# 2. 从 SD 卡 sda3 分区读取内核到内存
+STM32MP> ext4load mmc 0:3 0xc2000000 uImage
+
+# 3. 从 SD 卡 sda3 分区读取设备树到内存
+STM32MP> ext4load mmc 0:3 0xc4000000 stm32mp157d-atk.dtb
+
+# 4. 手动启动内核
+STM32MP> bootm 0xc2000000 - 0xc4000000
+```
+
+> 前提：U-Boot 有 `mmc` 和 `ext4` 文件系统支持。如果 sda3 是 FIT 格式（内核+dtb 打包在一起），直接用 `bootm` 启动 FIT 镜像即可。
+
+---
+
+## 三、SD 卡分区布局
+
+### 典型嵌入式分区表（物理偏移）
 
 | 分区                                        | 起始块（典型值）    | 说明                       |
 | ------------------------------------------- | ------------------- | -------------------------- |
@@ -51,7 +121,29 @@ sequenceDiagram
 | **uImage / kernel**                   | **0x1000 起** | **内核镜像存放位置** |
 | rootfs                                      | uImage 之后         | 根文件系统                 |
 
-## 二、第一阶段：准备产物（PC 端）
+### GPT 分区布局（本板实际）
+
+```
+sda1  →  236.5K    TF-A (FSBL)              ← BootROM 加载（裸二进制）
+sda2  →  236.5K    U-Boot (SSBL)            ← TF-A 加载（裸二进制）
+sda3  →  2M        FIT 镜像（内核+设备树）    ← U-Boot 加载
+sda4  →  29.7G     根文件系统 RootFS          ← 内核挂载
+```
+
+### 分区说明
+
+| 分区 | 文件系统 | 存储内容         | 由谁加载   | 说明                                 |
+| ---- | -------- | ---------------- | ---------- | ------------------------------------ |
+| sda1 | 裸二进制 | `tf-a.stm32`   | BootROM    | TF-A（FSBL），BootROM 直接读取裸数据 |
+| sda2 | 裸二进制 | `u-boot.stm32` | TF-A       | U-Boot（SSBL），TF-A 加载            |
+| sda3 | ext4/FIT | 内核 + 设备树    | U-Boot     | FIT 镜像或独立 uImage + dtb          |
+| sda4 | ext4     | 根文件系统       | Linux 内核 | 挂载为`/`                          |
+
+> 可以通过修改分区表调整各分区大小。
+
+---
+
+## 四、PC 端准备工作
 
 | 步骤 | 做什么                                            | 产出物                                         |
 | ---- | ------------------------------------------------- | ---------------------------------------------- |
@@ -65,47 +157,29 @@ sequenceDiagram
 
 ---
 
-## 三、第二阶段：SD 卡分区布局
+## 五、烧录到 SD 卡
 
-```
-sda1  →  236.5K    TF-A (FSBL)              ← BootROM 加载（裸二进制）
-sda2  →  236.5K    U-Boot (SSBL)            ← TF-A 加载（裸二进制）
-sda3  →  2M        FIT 镜像（内核+设备树）    ← U-Boot 加载
-sda4  →  29.7G     根文件系统 RootFS          ← 内核挂载
-```
-
-分区说明：
-
-- `sda1` / `sda2`：虽然是 GPT 分区表但实际存的是**裸二进制**，不是文件系统。由 BootROM 直接读取。
-- `sda3`：U-Boot 阶段加载内核和设备树。
-- `sda4`：Linux 启动后挂载为 `/`，是用户空间。
-
-> 可以通过修改分区表调整各分区大小。
-
----
-
-## 四、烧录命令
-
-### 整盘打包（备份）
+### 整盘备份
 
 ```bash
 sudo dd if=/dev/sda of=stm32mp157_sd_backup.img bs=4M status=progress
 ```
 
-### 整盘还原（烧录到新卡/eMMC）
+### 整盘还原（烧录新卡）
 
 ```bash
 sudo dd if=stm32mp157_sd_backup.img of=/dev/sdX bs=4M status=progress
 ```
 
-### 单分区烧录
+### 单分区烧录（推荐）
 
 ```bash
 sudo dd if=tf-a.stm32    of=/dev/sda1 bs=1M
 sudo dd if=u-boot.stm32  of=/dev/sda2 bs=1M
+# sda3（内核+dtb）和 sda4（rootfs）推荐通过文件系统拷贝，或用整盘还原
 ```
 
-### 打包 Bootloader 单独备份
+### Bootloader 单独备份
 
 ```bash
 sudo dd if=/dev/sda1 of=boot_sda1.bin bs=512
@@ -113,7 +187,7 @@ sudo dd if=/dev/sda2 of=boot_sda2.bin bs=512
 sudo dd if=/dev/sda3 of=boot_sda3.bin bs=512
 ```
 
-### rootfs 用 tar 打包（更小更快，只存有效数据）
+### rootfs 用 tar 打包（更小更快）
 
 ```bash
 sudo tar -czf rootfs.tar.gz -C /media/phy/rootfs .
@@ -121,9 +195,41 @@ sudo tar -czf rootfs.tar.gz -C /media/phy/rootfs .
 
 ---
 
-## 五、上电调试
+## 六、烧录到 eMMC
 
-### 串口连接
+### 方式一：U-Boot UMS 模式（PC 端操作）
+
+在开发板 U-Boot 命令行输入：
+
+```
+STM32MP> ums 0 mmc 1
+```
+
+| 参数      | 含义                                        |
+| --------- | ------------------------------------------- |
+| `ums`   | USB Mass Storage（模拟为 U 盘）             |
+| `0`     | USB 控制器 0（OTG 口）                      |
+| `mmc 1` | eMMC（`mmc 0` = SD 卡，`mmc 1` = eMMC） |
+
+PC 端识别为 `/dev/sdX` 后，用 `dd` 写入（参考第五节命令）。
+
+### 方式二：SD 卡启动后板内烧录（开发板内操作）
+
+SD 卡启动进入 Linux 后执行：
+
+```bash
+dd if=/home/root/tf-a.stm32     of=/dev/mmcblk0p1
+dd if=/home/root/u-boot.stm32   of=/dev/mmcblk0p2
+dd if=/dev/mmcblk1p4            of=/dev/mmcblk0p4   # rootfs 直接复制
+```
+
+> `mmcblk0` = eMMC, `mmcblk1` = SD 卡（具体编号因内核配置而异）
+
+---
+
+## 七、上电调试
+
+### 串口参数
 
 ```
 波特率：115200
@@ -133,7 +239,7 @@ sudo tar -czf rootfs.tar.gz -C /media/phy/rootfs .
 硬件流控：无
 ```
 
-### 启动输出观察
+### 各阶段输出观察
 
 ```
 1. BootROM      → （无输出或极少）
@@ -145,7 +251,7 @@ sudo tar -czf rootfs.tar.gz -C /media/phy/rootfs .
 
 ---
 
-## 六、常见故障排查
+## 八、常见故障排查
 
 | 现象                               | 可能原因                | 排查方向                       |
 | ---------------------------------- | ----------------------- | ------------------------------ |
@@ -159,7 +265,7 @@ sudo tar -czf rootfs.tar.gz -C /media/phy/rootfs .
 
 ---
 
-## 七、设备树修改看门狗
+## 九、设备树修改（以关闭看门狗为例）
 
 ### 方式一：修改 DTS 源码（推荐）
 
@@ -202,38 +308,7 @@ cp stm32mp157d-atk_new.dtb /boot/stm32mp157d-atk.dtb
 
 ---
 
-## 八、烧录到 eMMC
-
-### 方式一：U-Boot UMS 模式
-
-在板子的 U-Boot 命令行执行：
-
-```
-STM32MP> ums 0 mmc 1
-```
-
-| 命令      | 含义                                        |
-| --------- | ------------------------------------------- |
-| `ums`   | USB Mass Storage（模拟为 U 盘）             |
-| `0`     | USB 控制器 0（OTG 口）                      |
-| `mmc 1` | eMMC（`mmc 0` = SD 卡，`mmc 1` = eMMC） |
-
-此时 PC 上识别为 `/dev/sdX`，用 `dd` 直接写入。
-
-### 方式二：SD 卡启动，在板内烧录
-
-SD 卡启动进入 Linux 后：
-
-```bash
-# 在开发板的 Linux 里执行
-dd if=/home/root/tf-a.stm32     of=/dev/mmcblk0p1
-dd if=/home/root/u-boot.stm32   of=/dev/mmcblk0p2
-dd if=/dev/mmcblk1p4            of=/dev/mmcblk0p4   # rootfs 直接复制
-```
-
----
-
-## 九、dd 常用速查
+## 附1：dd 常用速查
 
 | 用途         | 命令                                                   |
 | ------------ | ------------------------------------------------------ |
@@ -255,7 +330,7 @@ dd if=/dev/mmcblk1p4            of=/dev/mmcblk0p4   # rootfs 直接复制
 
 ---
 
-## PS：其他设备（PC、服务器）的启动流程对比
+## 附2：其他设备启动流程对比
 
 所有现代设备都遵循同一核心模式，但复杂度差异很大：
 
