@@ -86,7 +86,6 @@ qrc_*.cpp
 *.orig
 *.rej
 *.qm
-.#*
 *.*#
 core
 !core/
@@ -123,5 +122,8 @@ Thumbs.db
 13.OpenCV/13.OpenCV_课程源码
 14.linux音视频开发/
 17.BSP/系统移植/D*
+zImage
+uImage
 *.pdf
 *.tar*
+*.gz
