@@ -5,6 +5,7 @@
 #include <linux/device.h>
 #include <linux/gpio.h>
 #include <linux/timer.h>
+#include <linux/uaccess.h>
 
 MODULE_LICENSE("GPL");
 
@@ -44,15 +45,54 @@ static int led_release(struct inode *inode, struct file *filp)
 }
 static ssize_t led_write(struct file *filp, const char __user *buf, size_t count, loff_t *f_pos)
 {
+    char cmd[8] = {0};
+    int i;
+
     printk("enter %s\n", __func__);
-    printk("led_write\n");
+
+    if (count > sizeof(cmd) - 1)
+        count = sizeof(cmd) - 1;
+
+    if (copy_from_user(cmd, buf, count))
+        return -EFAULT;
+
+    printk("led_write: cmd=%s\n", cmd);
+
+    del_timer(&led_timer);
+
+    if (strncmp(cmd, "on", 2) == 0) {
+        /* 只亮 LD2 */
+        gpio_set_value(LD1, 0);
+        gpio_set_value(LD2, 1);
+        gpio_set_value(LD3, 0);
+    } else if (strncmp(cmd, "off", 3) == 0) {
+        /* 全灭 */
+        for (i = 0; i < LED_NUM; i++)
+            gpio_set_value(led_pins[i], 0);
+    }
+
     return count;
 }
 static ssize_t led_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
 {   
+    char status[16];
+    int len;
+
     printk("enter %s\n", __func__);
     printk("led_read\n");
-    return count;
+
+    del_timer(&led_timer);
+
+    /* 返回当前 GPIO 74/90/72 的电平状态 */
+    len = snprintf(status, sizeof(status), "%d %d %d\n",
+                   gpio_get_value(LD1),
+                   gpio_get_value(LD2),
+                   gpio_get_value(LD3));
+
+    if (copy_to_user(buf, status, min((size_t)len, count)))
+        return -EFAULT;
+
+    return min((size_t)len, count);
 }
 /* file_operations 回调函数 — 被用户态系统调用触发 */
 
