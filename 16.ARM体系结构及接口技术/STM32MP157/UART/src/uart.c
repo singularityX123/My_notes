@@ -1,8 +1,8 @@
 ﻿// src/uart.c
-#include "stm32mp157_rcc.h"
-#include "stm32mp157_gpio.h"
-#include "stm32mp157_uart.h"
-#include "stm32mp157_iwdg.h"
+#include "../../include/stm32mp157_rcc.h"
+#include "../../include/stm32mp157_gpio.h"
+#include "../../include/stm32mp157_uart.h"
+#include "../../include/stm32mp157_iwdg.h"
 
 #define USART_KER_CKPRES 64000000 // APB1时钟频率 64MHz
 #define TX_OR_RX_BAUD 115200 // 波特率

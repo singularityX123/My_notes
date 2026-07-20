@@ -1,5 +1,5 @@
 ﻿// src/stm32mp157_spi.c
-#include "stm32mp157_spi.h"
+#include "../../../include/stm32mp157_spi.h"
 
 void spi_init_mode(const char *mode)
 {

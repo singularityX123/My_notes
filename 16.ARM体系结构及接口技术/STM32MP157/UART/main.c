@@ -1,6 +1,6 @@
 ﻿/* 阻塞IO,忙等待喂狗（无法处理多任务请求）*/
-#include "stm32mp157_uart.h"
-#include "stm32mp157_iwdg.h"
+#include "../include/stm32mp157_uart.h"
+#include "../include/stm32mp157_iwdg.h"
 #include <stdint.h>
 
 

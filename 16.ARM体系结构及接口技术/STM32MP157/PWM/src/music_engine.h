@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "stm32mp157_tim.h"
+#include "../../include/stm32mp157_tim.h"
 
 // ===================== MIDI 消息类型 =====================
 #define MIDI_NOTE_OFF       0x80

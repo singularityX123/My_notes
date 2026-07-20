@@ -1,7 +1,7 @@
 ﻿#include <stdint.h>
-#include "stm32mp157_rcc.h"
-#include "stm32mp157_gpio.h"
-#include "stm32mp157_iwdg.h"
+#include "../include/stm32mp157_rcc.h"
+#include "../include/stm32mp157_gpio.h"
+#include "../include/stm32mp157_iwdg.h"
 
 /* ---- USART 本地定义（非阻塞版自包含，不依赖 uart.h）---- */
 typedef struct {

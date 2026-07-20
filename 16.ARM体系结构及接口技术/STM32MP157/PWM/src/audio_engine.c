@@ -1,6 +1,6 @@
 // src/audio_engine.c - 寄存器级音频引擎（无 HAL）
 #include "music_engine.h"
-#include "stm32mp157_tim.h"
+#include "../../include/stm32mp157_tim.h"
 
 // 人耳可听范围：20Hz ~ 20kHz，PWM 载波频率限制
 #define MIN_FREQ  20

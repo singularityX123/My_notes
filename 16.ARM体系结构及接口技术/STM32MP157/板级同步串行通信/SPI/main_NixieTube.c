@@ -1,7 +1,7 @@
-﻿#include "stm32mp157_spi.h"
-#include "stm32mp157_iwdg.h"
-#include "stm32mp157_uart.h"
-#include "delay.h"
+﻿#include "../../include/stm32mp157_spi.h"
+#include "../../include/stm32mp157_iwdg.h"
+#include "../../include/stm32mp157_uart.h"
+#include "../../include/delay.h"
 #include <stdint.h>
 
 /* 栈空间：4KB，编译器自动放入 .bss */

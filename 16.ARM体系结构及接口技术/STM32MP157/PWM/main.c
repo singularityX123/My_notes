@@ -1,7 +1,7 @@
 // main.c - PWM 音乐播放（裸机寄存器版本，无 HAL / 无 U-Boot）
-#include "stm32mp157_gpio.h"
-#include "stm32mp157_rcc.h"
-#include "stm32mp157_tim.h"
+#include "../include/stm32mp157_gpio.h"
+#include "../include/stm32mp157_rcc.h"
+#include "../include/stm32mp157_tim.h"
 #include "src/music_engine.h"
 
 // ========== 曲库 ==========

@@ -1,8 +1,8 @@
 //#include <stdio.h>  裸机，无法使用标准库函数
 #include <stdint.h>
-#include "stm32mp157_rcc.h"
-#include "stm32mp157_gpio.h"
-#include "stm32mp157_iwdg.h"
+#include "../../include/stm32mp157_rcc.h"
+#include "../../include/stm32mp157_gpio.h"
+#include "../../include/stm32mp157_iwdg.h"
 
 /*c中嵌汇编启动*/
 /* 栈空间：4KB，编译器自动放入 .bss */

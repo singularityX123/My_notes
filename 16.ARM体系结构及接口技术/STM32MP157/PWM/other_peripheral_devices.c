@@ -1,6 +1,6 @@
-﻿#include "stm32mp157_gpio.h"
-#include "stm32mp157_rcc.h"
-#include "stm32mp157_tim.h"
+﻿#include "../include/stm32mp157_gpio.h"
+#include "../include/stm32mp157_rcc.h"
+#include "../include/stm32mp157_tim.h"
 
 // ===================== 风扇 ======================
 

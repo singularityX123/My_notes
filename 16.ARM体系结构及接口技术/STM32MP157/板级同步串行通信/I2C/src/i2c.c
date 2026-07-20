@@ -1,4 +1,4 @@
-﻿#include "stm32mp157_i2c.h"
+﻿#include "../../../include/stm32mp157_i2c.h"
 
 void i2c_init(void) {
     /* 使能GPIOF时钟 */

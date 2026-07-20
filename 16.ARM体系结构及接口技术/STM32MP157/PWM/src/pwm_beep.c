@@ -1,7 +1,7 @@
 // src/pwm_beep.c - PWM 蜂鸣器驱动（纯寄存器操作）
-#include "stm32mp157_gpio.h"
-#include "stm32mp157_rcc.h"
-#include "stm32mp157_tim.h"
+#include "../../include/stm32mp157_gpio.h"
+#include "../../include/stm32mp157_rcc.h"
+#include "../../include/stm32mp157_tim.h"
 #include "music_engine.h"
 
 void beep_pwm_init(void) {

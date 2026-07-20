@@ -1,7 +1,7 @@
-﻿#include "stm32mp157_i2c.h"
-#include "stm32mp157_uart.h"
-#include "stm32mp157_iwdg.h"
-#include "delay.h"
+﻿#include "../../include/stm32mp157_i2c.h"
+#include "../../include/stm32mp157_uart.h"
+#include "../../include/stm32mp157_iwdg.h"
+#include "../../include/delay.h"
 
 /* ===== SI7006 温湿度传感器 ===== */
 #define SI7006_SLAVE          0x40
