@@ -126,6 +126,7 @@ static void led_chaser_timer(struct timer_list *t)
     led_idx = (led_idx + 1) % LED_NUM;
     mod_timer(&led_timer, jiffies + HZ / 3);  // ~0.33 秒切换一次
 }
+
 int __init led_drv_init(void)
 {
     int ret;
