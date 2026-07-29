@@ -1,6 +1,7 @@
 ﻿#include <linux/init.h>
 #include <linux/module.h>
 #include <linux/fs.h>
+#include <linux/ioctl.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/gpio.h>
@@ -94,6 +95,78 @@ static ssize_t led_read(struct file *filp, char __user *buf, size_t count, loff_
 
     return min((size_t)len, count);
 }
+
+/* ========== ioctl 命令定义 ========== */
+#define LED_IOC_MAGIC  'L'
+
+#define LED_IOC_ALL_ON   _IO(LED_IOC_MAGIC, 0)   /* 全部亮 */
+#define LED_IOC_ALL_OFF  _IO(LED_IOC_MAGIC, 1)   /* 全部灭 */
+#define LED_IOC_SET      _IOW(LED_IOC_MAGIC, 2, int) /* 只亮第 arg 个 (0~2) */
+#define LED_IOC_GET      _IOR(LED_IOC_MAGIC, 3, int) /* 读取状态 bitmap */
+#define LED_IOC_TOGGLE   _IO(LED_IOC_MAGIC, 4)   /* 全部翻转 */
+
+static long led_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+    int i, val;
+    int nr;
+
+    printk("enter %s\n", __func__);
+
+    /* 检查幻数 */
+    if (_IOC_TYPE(cmd) != LED_IOC_MAGIC)
+        return -ENOTTY;
+
+    del_timer(&led_timer);   /* 执行 ioctl 时暂停流水灯 */
+
+    switch (cmd) {
+    case LED_IOC_ALL_ON:
+        printk("led_ioctl: ALL ON\n");
+        for (i = 0; i < LED_NUM; i++)
+            gpio_set_value(led_pins[i], 1);
+        break;
+
+    case LED_IOC_ALL_OFF:
+        printk("led_ioctl: ALL OFF\n");
+        for (i = 0; i < LED_NUM; i++)
+            gpio_set_value(led_pins[i], 0);
+        break;
+
+    case LED_IOC_SET:
+        /* 用户传一个 int，表示要点亮的 LED 序号 (0/1/2) */
+        if (copy_from_user(&nr, (int __user *)arg, sizeof(nr)))
+            return -EFAULT;
+        if (nr < 0 || nr >= LED_NUM)
+            return -EINVAL;
+        printk("led_ioctl: SET LED %d\n", nr);
+        for (i = 0; i < LED_NUM; i++)
+            gpio_set_value(led_pins[i], (i == nr) ? 1 : 0);
+        break;
+
+    case LED_IOC_GET:
+        /* 返回 bitmap: bit0=LD1, bit1=LD2, bit2=LD3 */
+        val = 0;
+        for (i = 0; i < LED_NUM; i++) {
+            if (gpio_get_value(led_pins[i]))
+                val |= (1 << i);
+        }
+        if (copy_to_user((int __user *)arg, &val, sizeof(val)))
+            return -EFAULT;
+        printk("led_ioctl: GET status=0x%x\n", val);
+        break;
+
+    case LED_IOC_TOGGLE:
+        printk("led_ioctl: TOGGLE ALL\n");
+        for (i = 0; i < LED_NUM; i++)
+            gpio_set_value(led_pins[i], !gpio_get_value(led_pins[i]));
+        break;
+
+    default:
+        return -ENOTTY;   /* 不支持的命令 */
+    }
+
+    return 0;
+}
+
 /* file_operations 回调函数 — 被用户态系统调用触发 */
 
 
@@ -103,6 +176,7 @@ static struct file_operations led_fops = {
     .release = led_release,
     .write = led_write,
     .read = led_read,
+    .unlocked_ioctl = led_ioctl, // 可以实现 ioctl 控制
     //...其他文件操作函数指针
 };
 static dev_t dev; //设备号
